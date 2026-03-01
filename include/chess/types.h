@@ -101,10 +101,6 @@ constexpr bool is_slider(Piece p) {
     return t == PT_BISHOP || t == PT_ROOK || t == PT_QUEEN;
 }
 
-// ------------------------------------------------------------
-// Conversions (declarations here; definitions can live in a .cpp)
-// ------------------------------------------------------------
-
 std::string square_to_string(int sq);                 // 0..63 -> "e4"
 std::optional<int> string_to_square(std::string_view); // "e4" -> 0..63
 
