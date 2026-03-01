@@ -27,27 +27,39 @@ static void print_help() {
 
 static void print_status(const chess::Game& game) {
     const auto& pos = game.position();
-    auto res = chess::result(pos);
+    const auto res = game.status();
 
-    if (res == chess::GameResult::Checkmate) {
-        std::cout << "Checkmate! "
-                  << (pos.side_to_move() == chess::WHITE ? "White" : "Black")
-                  << " is checkmated.\n";
-    } else if (res == chess::GameResult::Stalemate) {
-        std::cout << "Stalemate.\n";
-    } else {
-        if (chess::in_check(pos, pos.side_to_move())) {
-            std::cout << "Check.\n";
-        }
+    switch (res) {
+        case chess::GameResult::Checkmate:
+            std::cout << "Checkmate! "
+                      << (pos.side_to_move() == chess::WHITE ? "White" : "Black")
+                      << " is checkmated.\n";
+            break;
+        case chess::GameResult::Stalemate:
+            std::cout << "Stalemate.\n";
+            break;
+        case chess::GameResult::DrawFiftyMove:
+            std::cout << "Draw by 50-move rule.\n";
+            break;
+        case chess::GameResult::DrawRepetition:
+            std::cout << "Draw by repetition.\n";
+            break;
+        case chess::GameResult::Ongoing:
+            if (chess::in_check(pos, pos.side_to_move())) std::cout << "Check.\n";
+            break;
     }
+}
+
+static void render(const chess::Game& game) {
+    std::cout << game.position().ascii_board() << "\n";
+    print_status(game);
 }
 
 int main() {
     chess::Game game;
 
     std::cout << "Chess CLI (type 'help')\n";
-    std::cout << game.position().ascii_board() << "\n";
-    print_status(game);
+    render(game);
 
     std::string line;
     while (true) {
@@ -67,12 +79,10 @@ int main() {
         }
         else if (cmd == "startpos") {
             game.reset_startpos();
-            std::cout << game.position().ascii_board() << "\n";
-            print_status(game);
+            render(game);
         }
         else if (cmd == "board") {
-            std::cout << game.position().ascii_board() << "\n";
-            print_status(game);
+            render(game);
         }
         else if (cmd == "fen") {
             std::cout << game.fen() << "\n";
@@ -85,8 +95,7 @@ int main() {
             if (!game.set_fen(rest)) {
                 std::cout << "Invalid FEN\n";
             } else {
-                std::cout << game.position().ascii_board() << "\n";
-                print_status(game);
+                render(game);
             }
         }
         else if (cmd == "moves") {
@@ -96,6 +105,11 @@ int main() {
             std::cout << "\n";
         }
         else if (cmd == "play") {
+            auto st = game.status();
+            if (st != chess::GameResult::Ongoing) {
+                std::cout << "Game is over. Type 'startpos' or 'setfen ...' to start a new game.\n";
+                continue;
+            }
             std::string uci;
             iss >> uci;
             if (uci.empty()) {
@@ -105,16 +119,14 @@ int main() {
             if (!game.play_uci(uci)) {
                 std::cout << "Illegal move: " << uci << "\n";
             } else {
-                std::cout << game.position().ascii_board() << "\n";
-                print_status(game);
+                render(game);
             }
         }
         else if (cmd == "undo") {
             if (!game.undo()) {
                 std::cout << "Nothing to undo\n";
             } else {
-                std::cout << game.position().ascii_board() << "\n";
-                print_status(game);
+                render(game);
             }
         }
         else if (cmd == "perft") {
