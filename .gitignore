@@ -1,4 +1,14 @@
+# VSCode settings
+.vscode/
+
+# Build output
 build/
+
+# Object files
 *.o
 *.obj
+
+# Executables
 *.exe
+*.out
+*.app
